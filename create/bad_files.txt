@@ -1,0 +1,1 @@
+/home/vadbeg/Data/birdsong/birdsong-recognition/train_audio/lotduc/XC195038.mp3
