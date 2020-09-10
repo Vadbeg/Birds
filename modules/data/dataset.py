@@ -6,18 +6,24 @@ import h5py
 import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+from cv2 import cv2
 
 import torch
+import albumentations as albu
 from torch.utils.data.dataset import Dataset
+from albumentations import Normalize
+from albumentations.pytorch.transforms import ToTensorV2
 
 from modules.config import DataConfig
+from modules.data.utils import get_imagenet_normalizer, get_train_transforms, get_valid_transforms
 
 
 class BirdsDataset(Dataset):
     def __init__(self, h5_file_path: str,
                  width: int, n_classes: int,
                  start_edge: float = 0,
-                 end_edge: float = 1):
+                 end_edge: float = 1,
+                 transforms: albu.Compose = None):
         """
         Dataset for bird sounds classification.
 
@@ -35,12 +41,16 @@ class BirdsDataset(Dataset):
 
         self.min_value = -80
 
+        self.transforms = transforms
+
         assert 0 <= self.start_edge <= 1, 'Start edge must be greater or ' \
                                           'equal 0 and lower or equal 1'
         assert self.start_edge <= self.end_edge <= 1, 'End edge must be greater or equal start_edge ' \
                                                       'and lower or equal 1'
 
         self.width = width
+
+        self.normalizer = get_imagenet_normalizer()
 
     @staticmethod
     def __get_label_idx__(idx: int) -> int:
@@ -83,13 +93,21 @@ class BirdsDataset(Dataset):
 
     @staticmethod
     def __to_tensor__(data: Union[int, float, np.ndarray, List]) -> torch.tensor:
-        tensor = torch.tensor(data=data)
+        if isinstance(data, int) or len(data.shape) <= 2:
+            tensor = torch.tensor(data=data)
+        else:
+            tensor = ToTensorV2()(image=data)['image']
 
         return tensor
 
     def __normalize__(self, numpy_array: np.ndarray) -> np.ndarray:
         numpy_array = numpy_array + np.abs(self.min_value)
         numpy_array = numpy_array / np.abs(self.min_value)
+
+        # numpy_array = numpy_array * 255.0
+        #
+        # numpy_array = cv2.cvtColor(numpy_array, cv2.COLOR_GRAY2RGB)
+        # numpy_array = self.normalizer(numpy_array)
 
         return numpy_array
 
@@ -120,6 +138,9 @@ class BirdsDataset(Dataset):
         sound_array = self.h5_file[label][:, start_bound + lower_bound: start_bound + upper_bound]
         sound_array = self.__normalize__(numpy_array=sound_array)
 
+        if self.transforms:
+            sound_array = self.transforms(image=sound_array)['image']
+
         tensor_sound_array = self.__to_tensor__(data=sound_array)
         tensor_sound_array = tensor_sound_array.unsqueeze(0)
 
@@ -139,16 +160,23 @@ if __name__ == '__main__':
     data_config = DataConfig()
 
     file = h5py.File(data_config.dataset_path, mode='r')
+
+    transforms = get_valid_transforms(size=(256, 256))
+
     birds_dataset = BirdsDataset(h5_file_path=data_config.dataset_path,
-                                 width=256, n_classes=data_config.n_classes,
+                                 width=512, n_classes=data_config.n_classes,
                                  start_edge=0,
-                                 end_edge=1)
+                                 end_edge=1,
+                                 transforms=transforms)
 
     temp = birds_dataset[299]
-    print(temp[0])
+
+    print(temp[0].size())
     print(temp[1])
     exit()
-
+    # print(temp[0])
+    # print(temp[1])
+    # exit()
 
     while True:
         IDX = np.random.randint(0, len(birds_dataset))

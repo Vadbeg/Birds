@@ -1,32 +1,34 @@
+"""Module with help functions for dataset"""
+
 from typing import Tuple
 
-from modules.data.dataset import BirdsDataset
-
-from albumentations import Normalize, Compose
-
-
-def get_train_val_dataset(file_path: str,
-                          n_classes: int,
-                          valid_percent: float = 0.3) -> Tuple[BirdsDataset, BirdsDataset]:
-    assert 0 <= valid_percent <= 1, 'Start edge must be greater ' \
-                                    'or equal 0 and lower or equal 1'
-
-    train_end_edge = 1 - valid_percent
-
-    birds_dataset_train = BirdsDataset(h5_file_path=file_path,
-                                       width=256, start_edge=0.0,
-                                       end_edge=train_end_edge,
-                                       n_classes=n_classes)
-    birds_dataset_valid = BirdsDataset(h5_file_path=file_path,
-                                       width=256, start_edge=train_end_edge,
-                                       end_edge=1.0,
-                                       n_classes=n_classes)
-
-    return birds_dataset_train, birds_dataset_valid
+import numpy as np
+from albumentations import Normalize, Compose, Resize
 
 
-# def get_train_transforms():
-#     train_transforms = Compose([
-#         Normalize(std=)
-#     ])
+def get_imagenet_normalizer():
+    norm_function = Normalize(mean=[0.485, 0.456, 0.406],
+                              std=[0.229, 0.224, 0.225])
 
+    def normalizer(image: np.ndarray) -> np.ndarray:
+        image_norm = norm_function(image=image, mask=None)['image']
+
+        return image_norm
+
+    return normalizer
+
+
+def get_train_transforms(size: Tuple[int, int]):
+    train_transforms = Compose([
+        Resize(height=size[0], width=size[1])
+    ])
+
+    return train_transforms
+
+
+def get_valid_transforms(size: Tuple[int, int]):
+    valid_transforms = Compose([
+        Resize(height=size[0], width=size[1])
+    ])
+
+    return valid_transforms

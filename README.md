@@ -1,3 +1,8 @@
+Librosa is pretty slow, so it is better to transform data using it, and save spectrograms in another data format. For example [HDF5](https://www.h5py.org):   
+> It lets you store huge amounts of numerical data, and easily manipulate that data from NumPy. For example, you can slice into multi-terabyte datasets stored on disk, as if they were real NumPy arrays. Thousands of datasets can be stored in a single file, categorized and tagged however you want.
+
+Script for data transforming:
+```
 import os
 from pathlib import Path
 
@@ -48,20 +53,18 @@ def resample(ebird_code: str, filename: str, target_sr: int,
 
 
 if __name__ == '__main__':
-    TRAIN_AUDIO_DIR = Path('/home/vadbeg/Data/birdsong/birdsong-recognition/train_audio')
-    TRAIN_RESAMPLED_AUDIO_DIR = Path(
-        '/home/vadbeg/Data/birdsong/birdsong-recognition/train_resampled_audio'
-    )
+    TRAIN_AUDIO_DIR = Path('/**/birdsong-recognition/train_audio')
+    TRAIN_RESAMPLED_AUDIO_DIR = Path('/**/birdsong-recognition/train_resampled_audio')
 
     TARGET_SR = 32000
     NUM_THREAD = 12
 
-    train = pd.read_csv('/home/vadbeg/Data/birdsong/birdsong-recognition/train.csv')
+    train = pd.read_csv('/**/birdsong-recognition/train.csv')
 
     train_audio_info = train[['ebird_code', 'filename']].values.tolist()
     dataset_length = len(train_audio_info)
 
-    with h5py.File('/home/vadbeg/Data/birdsong/bird_spectrogram/testfile3.hdf5', mode='w') as file:
+    with h5py.File('/**/birdsong/bird_spectrogram/testfile.hdf5', mode='w') as file:
         codes = list()
 
         for idx, (ebird_code, file_name) in enumerate(tqdm(train_audio_info)):
@@ -82,5 +85,33 @@ if __name__ == '__main__':
                      audio_dir=TRAIN_AUDIO_DIR,
                      dataset=dataset)
 
-        print(len(codes))
+```
 
+What does this script do?
+
+
+```
+Basically, it creates some kind of dictionary, where the key is the bird code (ex: aldfly), 
+and the value is concatenated spectrogram of every birdsound of given class. It creates the 
+problem: we can't distinct spectrograms of the same class from each other. It can be easely 
+solved by saving every birdsong starting and ending index.
+```
+
+What is the size of resulted dataset?
+
+`38,7 GB`
+
+How long does it take to create it?
+
+`~3 hours (AMD Ryzen 2600X)`
+
+How to load it?
+
+```
+file = h5py.File(data_config.dataset_path, mode='r')
+sound_array = file[label][:, 0:256]
+```
+
+If you find a bug, please, let me know in the comments.
+
+P.S. Huge thank you to `Vladimir Sydorskyi` for the great idea.
