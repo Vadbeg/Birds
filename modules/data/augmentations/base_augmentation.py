@@ -14,14 +14,5 @@ class AudioTransform(BasicTransform):
 
     @property
     def targets(self):
-        return {'data': self.apply}
-
-    def update_params(self, params, **kwargs):
-        if hasattr(self, 'interpolation'):
-            params['interpolation'] = self.interpolation
-
-        if hasattr(self, 'fill_value'):
-            params['fill_value'] = self.fill_value
-
-        return params
+        return {'image': self.apply}
 

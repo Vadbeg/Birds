@@ -1,3 +1,5 @@
+"""This module reads audio and saves it as hdf5 dataset"""
+
 import os
 from pathlib import Path
 

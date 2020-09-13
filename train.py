@@ -1,8 +1,6 @@
-import h5py
+"""Module with training of model"""
 
 import torch
-import torchsummary
-import pytorch_lightning as pl
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers.neptune import NeptuneLogger
@@ -21,27 +19,27 @@ if __name__ == '__main__':
         'learning_rate': 0.001,
         'n_classes': data_config.n_classes,
         'max_epochs': 150,
-        'batch_size': 40,
-        'model_name': 'efficientnet-b0',
-        'width': 512,
-        'size': (128, 256)
+        'batch_size': 15,
+        'model_name': 'efficientnet-b1',
+        'width': 2048,
+        'size': (128, 512)
     }
 
-    # model = ClassificationModel(n_classes=data_config.n_classes,
-    #                             file_path=data_config.dataset_path,
-    #                             batch_size=hparams['batch_size'],
-    #                             hparams=hparams,
-    #                             model_name=hparams['model_name'],
-    #                             width=hparams['width'],
-    #                             size=hparams['size'])
-    model = ClassificationModel.load_from_checkpoint(checkpoint_path='5_epoch_effnet0.ckpt',
-                                                     n_classes=data_config.n_classes,
-                                                     file_path=data_config.dataset_path,
-                                                     batch_size=hparams['batch_size'],
-                                                     hparams=hparams,
-                                                     model_name=hparams['model_name'],
-                                                     width=hparams['width'],
-                                                     size=hparams['size'])
+    model = ClassificationModel(n_classes=data_config.n_classes,
+                                file_path=data_config.dataset_path,
+                                batch_size=hparams['batch_size'],
+                                hparams=hparams,
+                                model_name=hparams['model_name'],
+                                width=hparams['width'],
+                                size=hparams['size'])
+    # model = ClassificationModel.load_from_checkpoint(checkpoint_path='5_epoch_effnet0.ckpt',
+    #                                                  n_classes=data_config.n_classes,
+    #                                                  file_path=data_config.dataset_path,
+    #                                                  batch_size=hparams['batch_size'],
+    #                                                  hparams=hparams,
+    #                                                  model_name=hparams['model_name'],
+    #                                                  width=hparams['width'],
+    #                                                  size=hparams['size'])
 
     checkpoing_callback = ModelCheckpoint(
         filepath=model_config.weights_folder,
@@ -57,7 +55,7 @@ if __name__ == '__main__':
                 'ImFwaV91cmwiOiJodHRwczovL3VpLm5lcHR1bmUuYWkiLCJhcGlfa'
                 '2V5IjoiMTIyODQyZGUtNTdiMS00MDBlLWEzZmYtMzU0N2Q4MDViMjQ0In0=',
         project_name='vadbeg/birds',
-        experiment_name=f'{hparams["model_name"]}, CrossEntropyLoss',
+        experiment_name=f'{hparams["model_name"]}, CrossEntropyLoss, width=2048',
         params=hparams,
         tags=['pytorch-lightning', 'birds']
     )
