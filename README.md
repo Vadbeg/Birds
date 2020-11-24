@@ -35,4 +35,4 @@ Model part: `modules/model`
 ## Authors
 
 * **Vadim Titko** aka *Vadbeg* - [GitHub](https://github.com/Vadbeg/PythonHomework/commits?author=Vadbeg) 
-| [LinkedIn](https://www.linkedin.com/in/vadim-titko-89ab16149/)
+| [LinkedIn](https://www.linkedin.com/in/vadtitko/)
